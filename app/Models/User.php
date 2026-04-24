@@ -46,4 +46,23 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+// Un user appartient à un rôle
+public function role()
+{
+    return $this->belongsTo(Role::class);
+}
+
+// Un user (producteur) a plusieurs produits
+public function products()
+{
+    return $this->hasMany(Product::class);
+}
+
+// Un user (consommateur) a plusieurs commandes
+public function orders()
+{
+    return $this->hasMany(Order::class);
+}
 }
