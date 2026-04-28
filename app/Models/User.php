@@ -1,16 +1,18 @@
 <?php
- 
+
 namespace App\Models;
- 
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
- 
+
 class User extends Authenticatable
 {
-    use Notifiable;
- 
+    use HasApiTokens, HasFactory, Notifiable;
+
     protected $table = 'users';
- 
+
     protected $fillable = [
         'nom',
         'prenom',
@@ -19,7 +21,7 @@ class User extends Authenticatable
         'role',
         'telephone',
     ];
- 
+
     protected $hidden = [
         'password',
         'remember_token',
