@@ -2,35 +2,111 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\OrderController;
 
-// Routes publiques
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+/*
+|--------------------------------------------------------------------------
+| PRIME MARKET — API Routes
+|--------------------------------------------------------------------------
+|
+| Toutes les routes sont préfixées par /api (défini dans bootstrap/app.php)
+|
+| Middleware disponibles :
+|   auth:sanctum      → vérifie que le token est valide
+|   role:X            → vérifie le rôle de l'utilisateur (CheckRole)
+|
+*/
 
-// Routes protégées par Sanctum
+/* -----------------------------------------------------------------------
+ | Routes PUBLIQUES — pas de token requis
+ | ----------------------------------------------------------------------- */
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login',    [AuthController::class, 'login']);
+});
+
+
+/* -----------------------------------------------------------------------
+ | Routes PROTÉGÉES — token Sanctum requis
+ | ----------------------------------------------------------------------- */
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me',      [AuthController::class, 'me']);
+    // Auth communes à tous les rôles
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profil',  [AuthController::class, 'profil']);
+    });
 
-    // Produits
-    Route::get('/products',         [ProductController::class, 'index']);
-    Route::get('/products/{id}',    [ProductController::class, 'show']);
-    Route::post('/products',        [ProductController::class, 'store']);
-    Route::put('/products/{id}',    [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    /* -------------------------------------------------------------------
+     | PRODUCTEUR
+     | Agriculteur / Éleveur / Pêcheur
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:producteur')->prefix('producteur')->group(function () {
+        // À compléter par le Membre 4
+        // Route::get('/produits',        [ProducteurController::class, 'index']);
+        // Route::post('/produits',       [ProducteurController::class, 'store']);
+        // Route::put('/produits/{id}',   [ProducteurController::class, 'update']);
+        // Route::delete('/produits/{id}',[ProducteurController::class, 'destroy']);
+        // Route::get('/commandes',       [ProducteurController::class, 'commandes']);
+        // Route::get('/ventes',          [ProducteurController::class, 'ventes']);
+    });
 
-    // Catégories
-    Route::get('/categories',      [CategoryController::class, 'index']);
-    Route::get('/categories/{id}', [CategoryController::class, 'show']);
-    Route::post('/categories',     [CategoryController::class, 'store']);
+    /* -------------------------------------------------------------------
+     | DISTRIBUTEUR
+     | Grossiste / Détaillant
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:distributeur')->prefix('distributeur')->group(function () {
+        // À compléter par le Membre 5
+        // Route::get('/catalogue',       [DistributeurController::class, 'catalogue']);
+        // Route::post('/commandes',      [DistributeurController::class, 'passerCommande']);
+        // Route::get('/commandes',       [DistributeurController::class, 'mesCommandes']);
+        // Route::get('/livraisons',      [DistributeurController::class, 'livraisons']);
+    });
 
-    // Commandes
-    Route::get('/orders',        [OrderController::class, 'index']);
-    Route::get('/orders/{id}',   [OrderController::class, 'show']);
-    Route::post('/orders',       [OrderController::class, 'store']);
-    Route::put('/orders/{id}',   [OrderController::class, 'updateStatus']);
+    /* -------------------------------------------------------------------
+     | CONSOMMATEUR
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:consommateur')->prefix('consommateur')->group(function () {
+        // Route::get('/catalogue',       [ConsommateurController::class, 'catalogue']);
+        // Route::post('/commandes',      [ConsommateurController::class, 'passerCommande']);
+        // Route::post('/avis',           [ConsommateurController::class, 'laisserAvis']);
+    });
+
+    /* -------------------------------------------------------------------
+     | TRANSPORTEUR
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:transporteur')->prefix('transporteur')->group(function () {
+        // Route::get('/missions',        [TransporteurController::class, 'missions']);
+        // Route::post('/missions/{id}/accepter', [TransporteurController::class, 'accepter']);
+        // Route::post('/missions/{id}/refuser',  [TransporteurController::class, 'refuser']);
+        // Route::put('/livraisons/{id}/statut',  [TransporteurController::class, 'updateStatut']);
+    });
+
+    /* -------------------------------------------------------------------
+     | ADMIN SECTORIEL — gestion de son secteur uniquement
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
+        // Route::get('/comptes',         [AdminController::class, 'index']);
+        // Route::put('/comptes/{id}/activer',   [AdminController::class, 'activer']);
+        // Route::put('/comptes/{id}/suspendre', [AdminController::class, 'suspendre']);
+        // Route::delete('/comptes/{id}',        [AdminController::class, 'supprimer']);
+        // Route::get('/transactions',    [AdminController::class, 'transactions']);
+    });
+
+    /* -------------------------------------------------------------------
+     | SUPER ADMIN — accès global à tout
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:admin')->prefix('super-admin')->group(function () {
+        // Route::get('/categories',      [SuperAdminController::class, 'categories']);
+        // Route::post('/categories',     [SuperAdminController::class, 'creerCategorie']);
+        // Route::put('/categories/{id}', [SuperAdminController::class, 'modifierCategorie']);
+        // Route::delete('/categories/{id}', [SuperAdminController::class, 'supprimerCategorie']);
+    });
+
+    /* -------------------------------------------------------------------
+     | ROUTES COMMUNES (producteur + distributeur + admin peuvent y accéder)
+     | ------------------------------------------------------------------- */
+    Route::middleware('role:producteur,distributeur,admin')->prefix('commun')->group(function () {
+        // Exemple : consultation des paiements selon le rôle
+        // Route::get('/paiements', [PaiementController::class, 'index']);
+    });
 });
