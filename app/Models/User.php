@@ -2,68 +2,83 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    /*
+    |----------------------------------------------------------------------
+    | Champs autorisés à l'assignation de masse
+    |----------------------------------------------------------------------
+    */
     protected $fillable = [
-        'name',
+        'nom',
+        'prenom',
         'email',
         'password',
+        'role',       // producteur | distributeur | consommateur | transporteur | admin
+        'telephone',
+        'adresse',
+        'statut',     // actif | en_attente | suspendu
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+    /*
+    |----------------------------------------------------------------------
+    | Champs cachés dans les réponses JSON
+    |----------------------------------------------------------------------
+    */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    /*
+    |----------------------------------------------------------------------
+    | Casts de types automatiques
+    |----------------------------------------------------------------------
+    */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+    ];
+
+    /*
+    |----------------------------------------------------------------------
+    | Helpers de rôles (pratiques dans les controllers et les gates)
+    |----------------------------------------------------------------------
+    */
+    public function estProducteur(): bool
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->role === 'producteur';
     }
 
+    public function estDistributeur(): bool
+    {
+        return $this->role === 'distributeur';
+    }
 
-// Un user appartient à un rôle
-public function role()
-{
-    return $this->belongsTo(Role::class);
-}
+    public function estConsommateur(): bool
+    {
+        return $this->role === 'consommateur';
+    }
 
-// Un user (producteur) a plusieurs produits
-public function products()
-{
-    return $this->hasMany(Product::class);
-}
+    public function estTransporteur(): bool
+    {
+        return $this->role === 'transporteur';
+    }
 
-// Un user (consommateur) a plusieurs commandes
-public function orders()
-{
-    return $this->hasMany(Order::class);
-}
+    public function estAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function estActif(): bool
+    {
+        return $this->statut === 'actif';
+    }
 }
