@@ -1,7 +1,11 @@
-<!--
-Dashboard Producteur.
-Le Membre 4 développera ici :
-- le catalogue produits
-- l’ajout de produits
-- la gestion des produits du producteur
--->
+<template>
+  <div>
+    <h1>Dashboard Producteur</h1>
+  </div>
+</template>
+
+<script setup>
+definePageMeta({
+  layout: 'dashboard'
+})
+</script>

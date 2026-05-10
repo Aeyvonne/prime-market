@@ -1,8 +1,11 @@
-<!--
-Dashboard Super Admin.
-Gestion globale de la plateforme :
-- utilisateurs
-- rôles
-- statistiques
-- administration générale
--->
+<template>
+  <div>
+    <h1>Dashboard Super Admin</h1>
+  </div>
+</template>
+
+<script setup>
+definePageMeta({
+  layout: 'dashboard'
+})
+</script>
