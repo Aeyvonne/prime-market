@@ -3,59 +3,124 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Producteur;
+use App\Models\Distributeur;
+use App\Models\Consommateur;
+use App\Models\Transporteur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
     /**
-     * Inscription d'un nouvel utilisateur
-     * Roles acceptés : producteur, distributeur, consommateur, transporteur, admin
+     * Inscription d'un nouvel utilisateur avec son profil spécifique
+     * Roles acceptés : producteur, distributeur, consommateur, transporteur, admin_sectoriel
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'nom'      => 'required|string|max:100',
-            'prenom'   => 'required|string|max:100',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'required|in:producteur,distributeur,consommateur,transporteur,admin',
-            'telephone'=> 'nullable|string|max:20',
-            'adresse'  => 'nullable|string|max:255',
-        ]);
+        try {
+            $data = $request->validate([
+                'nom'       => 'required|string|max:255',
+                'prenom'    => 'required|string|max:255',
+                'email'     => 'required|email|unique:users',
+                'password'  => 'required|min:8|confirmed',
+                'telephone' => 'required|string|unique:users',
+                'role'      => [
+                    'required',
+                    Rule::in([
+                        'producteur',
+                        'distributeur',
+                        'consommateur',
+                        'transporteur',
+                        'admin_sectoriel'
+                    ])
+                ],
+                'adresse'            => 'nullable|string|max:500',
+                'acceptTerms'        => 'required|accepted',
+                // Champs Producteur
+                'secteur_travail'    => $request->input('role') === 'producteur' ? 'required|in:Agriculture,Elevage,Peche' : 'sometimes|nullable',
+                // Champs Distributeur
+                'type_distributeur'  => $request->input('role') === 'distributeur' ? 'required|in:Grossiste,Detaillant' : 'sometimes|nullable',
+                // Champs Transporteur
+                'type_vehicule'      => $request->input('role') === 'transporteur' ? 'required|in:Camion,Voiture,Moto' : 'sometimes|nullable',
+                'zone_intervention'  => 'sometimes|nullable|string|max:255',
+                'disponibilite'      => 'sometimes|nullable',
+            ]);
 
-        // Les consommateurs sont activés automatiquement,
-        // les autres rôles passent par validation admin
-        $statut = $request->role === 'consommateur' ? 'actif' : 'en_attente';
+            // Tous les comptes sont actifs par défaut à la création
+            $statut = 'actif';
 
-        $user = User::create([
-            'nom'       => $request->nom,
-            'prenom'    => $request->prenom,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'role'      => $request->role,
-            'telephone' => $request->telephone,
-            'adresse'   => $request->adresse,
-            'statut'    => $statut,
-        ]);
+            return DB::transaction(function () use ($data, $statut) {
+                // 1. Création de l'utilisateur de base
+                $user = User::create([
+                    'nom'       => $data['nom'],
+                    'prenom'    => $data['prenom'],
+                    'email'     => $data['email'],
+                    'password'  => Hash::make($data['password']),
+                    'telephone' => $data['telephone'],
+                    'role'      => $data['role'],
+                    'adresse'   => $data['adresse'] ?? null,
+                    'statut'    => $statut,
+                ]);
 
-        if ($statut === 'actif') {
-            // Connexion immédiate pour les consommateurs
-            $token = $user->createToken('auth_token')->plainTextToken;
+                // 2. Création du profil spécialisé
+                switch ($data['role']) {
+                    case 'producteur':
+                        Producteur::create([
+                            'id'              => $user->id,
+                            'secteur_travail' => $data['secteur_travail'],
+                            'adresse'         => $data['adresse'] ?? null,
+                        ]);
+                        break;
+                    case 'distributeur':
+                        Distributeur::create([
+                            'id'                => $user->id,
+                            'type_distributeur' => $data['type_distributeur'],
+                            'adresse'           => $data['adresse'] ?? null,
+                            'note'              => 0,
+                        ]);
+                        break;
+                    case 'consommateur':
+                        Consommateur::create([
+                            'id'      => $user->id,
+                            'adresse' => $data['adresse'] ?? null,
+                        ]);
+                        break;
+                    case 'transporteur':
+                        Transporteur::create([
+                            'id'                => $user->id,
+                            'type_vehicule'     => $data['type_vehicule'],
+                            'zone_intervention' => $data['zone_intervention'] ?? null,
+                            'disponibilite'     => $data['disponibilite'] ?? true,
+                        ]);
+                        break;
+                }
 
+                $token = $user->createToken('auth_token')->plainTextToken;
+                return response()->json([
+                    'message' => 'Compte créé avec succès. Bienvenue sur Prime Market !',
+                    'user'    => $this->formatUser($user),
+                    'token'   => $token,
+                    'role'    => $user->role
+                ], 201);
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'message' => 'Compte créé avec succès.',
-                'user'    => $this->formatUser($user),
-                'token'   => $token,
-            ], 201);
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error("Erreur d'inscription: " . $e->getMessage());
+            return response()->json([
+                'message' => "Erreur lors de l'inscription",
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Compte créé. En attente de validation par un administrateur.',
-            'user'    => $this->formatUser($user),
-        ], 201);
     }
 
     /**
@@ -126,7 +191,6 @@ class AuthController extends Controller
 
     /**
      * Mise en forme de l'utilisateur pour les réponses API
-     * (évite d'exposer le mot de passe et les champs sensibles)
      */
     private function formatUser(User $user): array
     {

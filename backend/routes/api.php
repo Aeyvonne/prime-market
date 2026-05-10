@@ -19,10 +19,8 @@ use App\Http\Controllers\AuthController;
 /* -----------------------------------------------------------------------
  | Routes PUBLIQUES — pas de token requis
  | ----------------------------------------------------------------------- */
-Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login',    [AuthController::class, 'login']);
-});
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
 
 
 /* -----------------------------------------------------------------------
@@ -31,10 +29,8 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth communes à tous les rôles
-    Route::prefix('auth')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/profil',  [AuthController::class, 'profil']);
-    });
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profil',  [AuthController::class, 'profil']);
 
     /* -------------------------------------------------------------------
      | PRODUCTEUR
@@ -84,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* -------------------------------------------------------------------
      | ADMIN SECTORIEL — gestion de son secteur uniquement
      | ------------------------------------------------------------------- */
-    Route::middleware('role:admin')->prefix('admin')->group(function () {
+    Route::middleware('role:admin_sectoriel')->prefix('admin')->group(function () {
         // Route::get('/comptes',         [AdminController::class, 'index']);
         // Route::put('/comptes/{id}/activer',   [AdminController::class, 'activer']);
         // Route::put('/comptes/{id}/suspendre', [AdminController::class, 'suspendre']);
@@ -95,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* -------------------------------------------------------------------
      | SUPER ADMIN — accès global à tout
      | ------------------------------------------------------------------- */
-    Route::middleware('role:admin')->prefix('super-admin')->group(function () {
+    Route::middleware('role:super_administrateur')->prefix('super-admin')->group(function () {
         // Route::get('/categories',      [SuperAdminController::class, 'categories']);
         // Route::post('/categories',     [SuperAdminController::class, 'creerCategorie']);
         // Route::put('/categories/{id}', [SuperAdminController::class, 'modifierCategorie']);
@@ -103,9 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     /* -------------------------------------------------------------------
-     | ROUTES COMMUNES (producteur + distributeur + admin peuvent y accéder)
+     | ROUTES COMMUNES (producteur + distributeur + admins peuvent y accéder)
      | ------------------------------------------------------------------- */
-    Route::middleware('role:producteur,distributeur,admin')->prefix('commun')->group(function () {
+    Route::middleware('role:producteur,distributeur,admin_sectoriel,super_administrateur')->prefix('commun')->group(function () {
         // Exemple : consultation des paiements selon le rôle
         // Route::get('/paiements', [PaiementController::class, 'index']);
     });

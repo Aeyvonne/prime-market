@@ -1,7 +1,11 @@
-<!--
-Dashboard Distributeur.
-Le Membre 5 développera ici :
-- le catalogue distributeur
-- l’ajout de produits
-- l’accès au catalogue général
--->
+<template>
+  <div>
+    <h1>Dashboard Distributeur</h1>
+  </div>
+</template>
+
+<script setup>
+definePageMeta({
+  layout: 'dashboard'
+})
+</script>
