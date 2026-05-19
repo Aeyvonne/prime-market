@@ -287,15 +287,16 @@
           <TransitionGroup name="list">
             <div v-for="product in filteredProducts" :key="product.id" class="group bg-white rounded-[2.5rem] overflow-hidden border border-[#2D5A27]/5 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
               <div class="relative overflow-hidden">
-                <img :src="`/${product.image}`" :alt="product.name" class="w-full h-[200px] object-cover bg-[#EFF7EC] group-hover:scale-110 transition-transform duration-700">
+                <img v-if="product.photo" :src="`http://127.0.0.1:8000/storage/products/${product.photo}`" :alt="product.nom" class="w-full h-[200px] object-cover bg-[#EFF7EC] group-hover:scale-110 transition-transform duration-700">
+                <div v-else class="w-full h-[200px] flex items-center justify-center text-5xl bg-[#EFF7EC] group-hover:scale-110 transition-transform duration-700">📦</div>
                 <div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur rounded-full text-[10px] font-black text-[#2D5A27] uppercase tracking-widest shadow-sm">
-                  {{ product.category }}
+                  {{ product.sous_categorie?.categorie?.nom || 'Général' }}
                 </div>
               </div>
               <div class="p-8">
                 <div class="flex justify-between items-start mb-2">
-                  <h4 class="text-xl font-black text-[#1A2E18]">{{ product.name }}</h4>
-                  <p class="text-[#2D5A27] font-black">{{ product.price }} FCFA</p>
+                  <h4 class="text-xl font-black text-[#1A2E18] line-clamp-1">{{ product.nom }}</h4>
+                  <p class="text-[#2D5A27] font-black whitespace-nowrap ml-2">{{ formatPrice(product.prix) }}</p>
                 </div>
                 <p class="text-gray-500 text-xs font-medium mb-6">Récolté le 08 Mai 2026 — Région de Thiès</p>
                 <NuxtLink to="/catalogue" class="w-full py-4 rounded-xl border-2 border-[#1A2E18]/5 group-hover:border-[#2D5A27] text-[#1A2E18] group-hover:text-[#2D5A27] font-bold text-sm transition-all flex items-center justify-center gap-2">
@@ -492,29 +493,44 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 definePageMeta({
   layout: 'default'
 })
 
 const activeFilter = ref('all')
+const products = ref([])
+const pending = ref(true)
 
-const products = [
-  { id: 1, name: 'Tomates Fraîches', category: 'Agriculture', price: '2500', image: 'tomate.jpg' },
-  { id: 2, name: 'Mangues Kent', category: 'Agriculture', price: '4500', image: 'mangue.jpg' },
-  { id: 3, name: 'Maïs Local', category: 'Agriculture', price: '1200', image: 'mais.jpg' },
-  { id: 4, name: 'Carpe du Fleuve', category: 'Peche', price: '3500', image: 'Carpe.jpg' },
-  { id: 5, name: 'Poulet Fermier', category: 'Elevage', price: '5500', image: 'poulet.jpg' },
-  { id: 6, name: 'Lait Caillé', category: 'Elevage', price: '2000', image: 'Lait.jpg' },
-  { id: 7, name: 'Bœuf (Part)', category: 'Elevage', price: '8500', image: 'vache.jpg' },
-  { id: 8, name: 'Œufs Frais', category: 'Elevage', price: '3000', image: 'oeuf.jpg' }
-]
+onMounted(async () => {
+  pending.value = true
+  try {
+    const response = await $fetch('http://127.0.0.1:8000/api/produits')
+    products.value = response || []
+  } catch (err) {
+    console.error('Erreur chargement catalogue public:', err)
+    products.value = []
+  } finally {
+    pending.value = false
+  }
+})
 
 const filteredProducts = computed(() => {
-  if (activeFilter.value === 'all') return products
-  return products.filter(p => p.category === activeFilter.value)
+  if (!products.value || products.value.length === 0) return []
+  
+  if (activeFilter.value === 'all') return products.value
+  
+  return products.value.filter(p => {
+    // Adapter selon la casse (Peche vs Pêche)
+    const categoryName = p.sous_categorie?.categorie?.nom?.replace('ê', 'e') || ''
+    return categoryName.includes(activeFilter.value) || activeFilter.value.includes(categoryName)
+  })
 })
+
+function formatPrice(price) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(price).replace('XOF', 'FCFA')
+}
 </script>
 
 <style scoped>

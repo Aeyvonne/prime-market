@@ -7,9 +7,16 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Http\\Controllers\\AuthController' => $baseDir . '/app/Http/Controllers/AuthController.php',
+    'App\\Http\\Controllers\\CategorieController' => $baseDir . '/app/Http/Controllers/CategorieController.php',
+    'App\\Http\\Controllers\\CommandeController' => $baseDir . '/app/Http/Controllers/CommandeController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\DistributeurController' => $baseDir . '/app/Http/Controllers/DistributeurController.php',
+    'App\\Http\\Controllers\\LivraisonController' => $baseDir . '/app/Http/Controllers/LivraisonController.php',
     'App\\Http\\Controllers\\OrderController' => $baseDir . '/app/Http/Controllers/OrderController.php',
+    'App\\Http\\Controllers\\PaiementController' => $baseDir . '/app/Http/Controllers/PaiementController.php',
     'App\\Http\\Controllers\\ProductController' => $baseDir . '/app/Http/Controllers/ProductController.php',
+    'App\\Http\\Controllers\\ProduitController' => $baseDir . '/app/Http/Controllers/ProduitController.php',
+    'App\\Http\\Middleware\\CheckRole' => $baseDir . '/app/Http/Middleware/CheckRole.php',
     'App\\Models\\AdminSectorielle' => $baseDir . '/app/Models/AdminSectorielle.php',
     'App\\Models\\Categorie' => $baseDir . '/app/Models/Categorie.php',
     'App\\Models\\Commande' => $baseDir . '/app/Models/Commande.php',

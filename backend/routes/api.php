@@ -2,7 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProducteurController;
+use App\Http\Controllers\DistributeurController;
+use App\Http\Controllers\ProduitController;
+use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\LivraisonController;
+use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\CategorieController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +20,7 @@ use App\Http\Controllers\ProducteurController;
 |   auth:sanctum      → vérifie que le token est valide
 |   role:X            → vérifie le rôle de l'utilisateur (CheckRole)
 |
-*/
+| */
 
 /* -----------------------------------------------------------------------
  | Routes PUBLIQUES — pas de token requis
@@ -23,9 +28,12 @@ use App\Http\Controllers\ProducteurController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
-// Catégories publiques (accessible à tous)
-Route::get('/categories', [ProducteurController::class, 'categories']);
-Route::get('/sous-categories', [ProducteurController::class, 'sousCategories']);
+// Routes publiques pour les produits et catégories
+Route::get('/produits', [ProduitController::class, 'index']);
+Route::get('/produits/{id}', [ProduitController::class, 'show']);
+Route::get('/categories', [CategorieController::class, 'index']);
+
+
 /* -----------------------------------------------------------------------
  | Routes PROTÉGÉES — token Sanctum requis
  | ----------------------------------------------------------------------- */
@@ -34,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth communes à tous les rôles
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profil',  [AuthController::class, 'profil']);
+    Route::put('/profil',  [AuthController::class, 'updateProfil']);
+    Route::put('/profil/password', [AuthController::class, 'updatePassword']);
 
     /* -------------------------------------------------------------------
      | PRODUCTEUR
@@ -52,11 +62,26 @@ Route::middleware('auth:sanctum')->group(function () {
      | Grossiste / Détaillant
      | ------------------------------------------------------------------- */
     Route::middleware('role:distributeur')->prefix('distributeur')->group(function () {
-        // À compléter par le Membre 5
-        // Route::get('/catalogue',       [DistributeurController::class, 'catalogue']);
-        // Route::post('/commandes',      [DistributeurController::class, 'passerCommande']);
-        // Route::get('/commandes',       [DistributeurController::class, 'mesCommandes']);
-        // Route::get('/livraisons',      [DistributeurController::class, 'livraisons']);
+        // Catalogue (achat auprès des producteurs)
+        Route::get('/catalogue',       [DistributeurController::class, 'catalogue']);
+        Route::get('/catalogue/{id}',  [DistributeurController::class, 'showCatalogueProduit']);
+
+        // Commandes passées par le distributeur
+        Route::get('/commandes',       [DistributeurController::class, 'mesCommandes']);
+        Route::post('/commandes',      [DistributeurController::class, 'passerCommande']);
+        Route::get('/commandes/{id}',  [DistributeurController::class, 'showCommande']);
+        Route::put('/commandes/{id}/annuler', [DistributeurController::class, 'annulerCommande']);
+
+        // Gestion de ses propres produits (pour la revente)
+        Route::get('/produits',        [DistributeurController::class, 'mesProduits']);
+        Route::post('/produits',       [DistributeurController::class, 'storeProduit']);
+        Route::put('/produits/{id}',   [DistributeurController::class, 'updateProduit']);
+        Route::delete('/produits/{id}',[DistributeurController::class, 'destroyProduit']);
+
+        // Suivi
+        Route::get('/livraisons',      [DistributeurController::class, 'livraisons']);
+        Route::get('/livraisons/{id}', [DistributeurController::class, 'showLivraison']);
+        Route::get('/paiements',       [DistributeurController::class, 'paiements']);
     });
 
     /* -------------------------------------------------------------------

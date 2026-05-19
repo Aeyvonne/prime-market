@@ -128,13 +128,9 @@
                   <p class="text-sm font-black text-gray-800 truncate">{{ userEmail }}</p>
                 </div>
                 <div class="p-2">
-                  <NuxtLink :to="`/${userRole}/profil`" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-[#F5F0E8] hover:text-[#2D5A27] rounded-2xl transition-all">
+                  <NuxtLink to="/profil" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-[#F5F0E8] hover:text-[#2D5A27] rounded-2xl transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     Mon profil
-                  </NuxtLink>
-                  <NuxtLink :to="`/${userRole}/parametres`" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-[#F5F0E8] hover:text-[#2D5A27] rounded-2xl transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2" stroke="currentColor" fill="none"/></svg>
-                    Paramètres
                   </NuxtLink>
                 </div>
                 <div class="mt-2 p-2 border-t border-gray-50">
@@ -225,8 +221,7 @@ const navByRole = {
     { label: 'Commandes reçues', to: '/producteur/commandes', icon: IconOrders, badge: '5' },
     { label: 'Mes ventes', to: '/producteur/ventes', icon: IconStats },
     { label: 'Paiements reçus', to: '/producteur/paiements', icon: IconWallet },
-    { label: 'Mon profil', to: '/producteur/profil', icon: IconProfile },
-    { label: 'Paramètres', to: '/producteur/parametres', icon: IconSettings },
+    { label: 'Mon profil', to: '/profil', icon: IconProfile },
   ],
   distributeur: [
     { label: 'Tableau de bord', to: '/distributeur', icon: IconDashboard },
@@ -235,8 +230,7 @@ const navByRole = {
     { label: 'Commandes', to: '/distributeur/commandes', icon: IconOrders },
     { label: 'Livraisons', to: '/distributeur/livraisons', icon: IconTruck },
     { label: 'Paiements', to: '/distributeur/paiements', icon: IconWallet },
-    { label: 'Mon profil', to: '/distributeur/profil', icon: IconProfile },
-    { label: 'Paramètres', to: '/distributeur/parametres', icon: IconSettings },
+    { label: 'Mon profil', to: '/profil', icon: IconProfile },
   ],
   consommateur: [
     { label: 'Tableau de bord', to: '/consommateur', icon: IconDashboard },
@@ -244,8 +238,7 @@ const navByRole = {
     { label: 'Mes commandes', to: '/consommateur/commandes', icon: IconOrders },
     { label: 'Suivi livraison', to: '/consommateur/livraisons', icon: IconTruck },
     { label: 'Mes paiements', to: '/consommateur/paiements', icon: IconWallet },
-    { label: 'Mon profil', to: '/consommateur/profil', icon: IconProfile },
-    { label: 'Paramètres', to: '/consommateur/parametres', icon: IconSettings },
+    { label: 'Mon profil', to: '/profil', icon: IconProfile },
   ],
   transporteur: [
     { label: 'Tableau de bord', to: '/transporteur', icon: IconDashboard },
@@ -253,8 +246,7 @@ const navByRole = {
     { label: 'Carte & Itinéraires', to: '/transporteur/carte', icon: IconMap },
     { label: 'Livraisons', to: '/transporteur/livraisons', icon: IconOrders },
     { label: 'Rémunérations', to: '/transporteur/remunerations', icon: IconWallet },
-    { label: 'Mon profil', to: '/transporteur/profil', icon: IconProfile },
-    { label: 'Paramètres', to: '/transporteur/parametres', icon: IconSettings },
+    { label: 'Mon profil', to: '/profil', icon: IconProfile },
   ]
 }
 
