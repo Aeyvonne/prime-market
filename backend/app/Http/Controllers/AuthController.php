@@ -179,14 +179,125 @@ class AuthController extends Controller
         ], 200);
     }
 
-    /**
-     * Profil de l'utilisateur connecté
-     */
     public function profil(Request $request)
     {
+        $user = $request->user();
+        
+        // Charger la relation selon le rôle pour ne pas faire de requêtes séparées (sauf si manquant)
+        if ($user->role === 'producteur') $user->load('producteur');
+        elseif ($user->role === 'distributeur') $user->load('distributeur');
+        elseif ($user->role === 'consommateur') $user->load('consommateur');
+        elseif ($user->role === 'transporteur') $user->load('transporteur');
+
+        $stats = [];
+        if ($user->role === 'producteur') {
+            $stats = [
+                'produits_count' => DB::table('produits')->where('producteur_id', $user->id)->count(),
+                'commandes_recues' => DB::table('commandes')->where('vendeur_id', $user->id)->count(),
+                'ventes_mois' => 0, // Placeholder
+            ];
+        } elseif ($user->role === 'distributeur') {
+            $stats = [
+                'commandes_passees' => DB::table('commandes')->where('acheteur_id', $user->id)->count(),
+                'produits_vente' => DB::table('produits')->where('proprietaire_id', $user->id)->where('proprietaire_type', 'distributeur')->count(),
+                'paiements_effectues' => 0, // Placeholder
+            ];
+        } elseif ($user->role === 'consommateur') {
+            $stats = [
+                'commandes_passees' => DB::table('commandes')->where('acheteur_id', $user->id)->count(),
+                'livraisons_recues' => 0,
+                'evaluations_donnees' => 0,
+            ];
+        } elseif ($user->role === 'transporteur') {
+            $stats = [
+                'missions_effectuees' => 0,
+                'missions_en_cours' => 0,
+                'remunerations_mois' => 0,
+            ];
+        }
+        
+        $userData = $this->formatUser($user);
+        if ($user->role === 'producteur' && $user->producteur) $userData['producteur'] = $user->producteur;
+        if ($user->role === 'distributeur' && $user->distributeur) $userData['distributeur'] = $user->distributeur;
+        if ($user->role === 'consommateur' && $user->consommateur) $userData['consommateur'] = $user->consommateur;
+        if ($user->role === 'transporteur' && $user->transporteur) $userData['transporteur'] = $user->transporteur;
+
         return response()->json([
-            'user' => $this->formatUser($request->user()),
+            'user' => $userData,
+            'stats' => $stats
         ], 200);
+    }
+
+    /**
+     * Mettre à jour le profil de l'utilisateur
+     */
+    public function updateProfil(Request $request)
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'nom'       => 'sometimes|required|string|max:255',
+            'prenom'    => 'sometimes|required|string|max:255',
+            'email'     => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'telephone' => 'sometimes|required|string|unique:users,telephone,' . $user->id,
+            'adresse'   => 'nullable|string|max:500',
+            
+            // Producteur
+            'secteur_travail' => 'sometimes|nullable|in:Agriculture,Elevage,Peche',
+            // Distributeur
+            'type_distributeur' => 'sometimes|nullable|in:Grossiste,Detaillant',
+            // Transporteur
+            'type_vehicule' => 'sometimes|nullable|in:Camion,Voiture,Moto',
+            'zone_intervention' => 'sometimes|nullable|string|max:255',
+            'disponibilite' => 'sometimes|boolean',
+        ]);
+
+        $user->update($request->only(['nom', 'prenom', 'email', 'telephone', 'adresse']));
+
+        if ($user->role === 'producteur' && $request->has('secteur_travail')) {
+            $user->producteur()->update($request->only('secteur_travail', 'adresse'));
+        } elseif ($user->role === 'distributeur' && $request->has('type_distributeur')) {
+            $user->distributeur()->update($request->only('type_distributeur', 'adresse'));
+        } elseif ($user->role === 'consommateur') {
+            $user->consommateur()->update($request->only('adresse'));
+        } elseif ($user->role === 'transporteur') {
+            $user->transporteur()->update([
+                'type_vehicule' => $request->input('type_vehicule', $user->transporteur->type_vehicule),
+                'zone_intervention' => $request->input('zone_intervention', $user->transporteur->zone_intervention),
+                'disponibilite' => $request->input('disponibilite', true)
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès.',
+        ]);
+    }
+
+    /**
+     * Mettre à jour le mot de passe
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['L\'ancien mot de passe est incorrect.']
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'message' => 'Mot de passe mis à jour avec succès.'
+        ]);
     }
 
     /**

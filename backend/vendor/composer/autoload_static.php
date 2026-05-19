@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39
+class ComposerStaticInit30ede9cc2d9eecae449b0452a2292045
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -537,9 +537,16 @@ class ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39
 
     public static $classMap = array (
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
+        'App\\Http\\Controllers\\CategorieController' => __DIR__ . '/../..' . '/app/Http/Controllers/CategorieController.php',
+        'App\\Http\\Controllers\\CommandeController' => __DIR__ . '/../..' . '/app/Http/Controllers/CommandeController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\DistributeurController' => __DIR__ . '/../..' . '/app/Http/Controllers/DistributeurController.php',
+        'App\\Http\\Controllers\\LivraisonController' => __DIR__ . '/../..' . '/app/Http/Controllers/LivraisonController.php',
         'App\\Http\\Controllers\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrderController.php',
+        'App\\Http\\Controllers\\PaiementController' => __DIR__ . '/../..' . '/app/Http/Controllers/PaiementController.php',
         'App\\Http\\Controllers\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductController.php',
+        'App\\Http\\Controllers\\ProduitController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProduitController.php',
+        'App\\Http\\Middleware\\CheckRole' => __DIR__ . '/../..' . '/app/Http/Middleware/CheckRole.php',
         'App\\Models\\AdminSectorielle' => __DIR__ . '/../..' . '/app/Models/AdminSectorielle.php',
         'App\\Models\\Categorie' => __DIR__ . '/../..' . '/app/Models/Categorie.php',
         'App\\Models\\Commande' => __DIR__ . '/../..' . '/app/Models/Commande.php',
@@ -7038,9 +7045,9 @@ class ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf4dbe09ac5bbddf1a0ad59af35d90a39::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit30ede9cc2d9eecae449b0452a2292045::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit30ede9cc2d9eecae449b0452a2292045::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit30ede9cc2d9eecae449b0452a2292045::$classMap;
 
         }, null, ClassLoader::class);
     }

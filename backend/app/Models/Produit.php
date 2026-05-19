@@ -13,9 +13,12 @@ class Produit extends Model
         'description',
         'prix',
         'quantite',
+        'photo',
         'status',
         'sous_categorie_id',
         'producteur_id',
+        'proprietaire_type',
+        'proprietaire_id',
     ];
  
     // ========== RELATIONS ==========
@@ -36,6 +39,12 @@ class Produit extends Model
     public function lignesCommande()
     {
         return $this->hasMany(LigneCommande::class, 'produit_id');
+    }
+
+    // Appartient à un distributeur (optionnel)
+    public function distributeur()
+    {
+        return $this->belongsTo(Distributeur::class, 'proprietaire_id');
     }
 }
  
