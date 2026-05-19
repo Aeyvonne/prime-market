@@ -50,13 +50,11 @@ Route::middleware('auth:sanctum')->group(function () {
      | Agriculteur / Éleveur / Pêcheur
      | ------------------------------------------------------------------- */
     Route::middleware('role:producteur')->prefix('producteur')->group(function () {
-        // À compléter par le Membre 4
-        // Route::get('/produits',        [ProducteurController::class, 'index']);
-        // Route::post('/produits',       [ProducteurController::class, 'store']);
-        // Route::put('/produits/{id}',   [ProducteurController::class, 'update']);
-        // Route::delete('/produits/{id}',[ProducteurController::class, 'destroy']);
-        // Route::get('/commandes',       [ProducteurController::class, 'commandes']);
-        // Route::get('/ventes',          [ProducteurController::class, 'ventes']);
+        Route::get('/produits',         [ProducteurController::class, 'index']);
+        Route::post('/produits',        [ProducteurController::class, 'store']);
+        Route::put('/produits/{id}',    [ProducteurController::class, 'update']);
+        Route::delete('/produits/{id}', [ProducteurController::class, 'destroy']);
+        Route::get('/commandes',        [ProducteurController::class, 'commandes']);
     });
 
     /* -------------------------------------------------------------------
@@ -127,10 +125,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     /* -------------------------------------------------------------------
-     | ROUTES COMMUNES (producteur + distributeur + admins peuvent y accéder)
+     | ROUTES COMMUNES
      | ------------------------------------------------------------------- */
     Route::middleware('role:producteur,distributeur,admin_sectoriel,super_administrateur')->prefix('commun')->group(function () {
-        // Exemple : consultation des paiements selon le rôle
         // Route::get('/paiements', [PaiementController::class, 'index']);
     });
 });
