@@ -8,6 +8,8 @@ use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\LivraisonController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\CategorieController;
+use App\Http\Controllers\ProducteurController;
+use App\Http\Controllers\SuperAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,10 +52,12 @@ Route::middleware('auth:sanctum')->group(function () {
      | Agriculteur / Éleveur / Pêcheur
      | ------------------------------------------------------------------- */
     Route::middleware('role:producteur')->prefix('producteur')->group(function () {
-        Route::get('/produits',         [ProducteurController::class, 'index']);
-        Route::post('/produits',        [ProducteurController::class, 'store']);
-        Route::put('/produits/{id}',    [ProducteurController::class, 'update']);
-        Route::delete('/produits/{id}', [ProducteurController::class, 'destroy']);
+        Route::get('/produits',         [ProduitController::class, 'mesProduits']);
+        Route::post('/produits',        [ProduitController::class, 'store']);
+        Route::get('/produits/{id}',    [ProduitController::class, 'show']);
+        Route::put('/produits/{id}',    [ProduitController::class, 'update']);
+        Route::post('/produits/{id}',   [ProduitController::class, 'update']); // Pour supporter _method=PUT dans multipart/form-data
+        Route::delete('/produits/{id}', [ProduitController::class, 'destroy']);
         Route::get('/commandes',        [ProducteurController::class, 'commandes']);
     });
 
@@ -118,10 +122,23 @@ Route::middleware('auth:sanctum')->group(function () {
      | SUPER ADMIN — accès global à tout
      | ------------------------------------------------------------------- */
     Route::middleware('role:super_administrateur')->prefix('super-admin')->group(function () {
-        // Route::get('/categories',      [SuperAdminController::class, 'categories']);
-        // Route::post('/categories',     [SuperAdminController::class, 'creerCategorie']);
-        // Route::put('/categories/{id}', [SuperAdminController::class, 'modifierCategorie']);
-        // Route::delete('/categories/{id}', [SuperAdminController::class, 'supprimerCategorie']);
+        // Gestion des catégories
+        Route::get('/categories', [SuperAdminController::class, 'indexCategories']);
+        Route::post('/categories', [SuperAdminController::class, 'storeCategorie']);
+        Route::put('/categories/{id}', [SuperAdminController::class, 'updateCategorie']);
+        Route::delete('/categories/{id}', [SuperAdminController::class, 'destroyCategorie']);
+
+        // Gestion de tous les comptes
+        Route::get('/comptes', [SuperAdminController::class, 'indexComptes']);
+        Route::post('/comptes', [SuperAdminController::class, 'storeCompte']);
+        Route::put('/comptes/{id}', [SuperAdminController::class, 'updateCompte']);
+        Route::delete('/comptes/{id}', [SuperAdminController::class, 'destroyCompte']);
+
+        // Statistiques globales
+        Route::get('/statistiques', [SuperAdminController::class, 'statistiques']);
+
+        // Transactions globales
+        Route::get('/transactions', [SuperAdminController::class, 'transactions']);
     });
 
     /* -------------------------------------------------------------------

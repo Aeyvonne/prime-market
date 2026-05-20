@@ -1,123 +1,130 @@
 <template>
-  <div class="max-w-2xl mx-auto">
+  <div class="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-700">
     <!-- Header -->
-    <div class="flex items-center gap-4 mb-8">
-      <NuxtLink
-        to="/producteur/produits"
-        class="p-2 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 transition-all"
-      >
-        ←
+    <div class="mb-8">
+      <NuxtLink to="/producteur/produits" class="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#2D5A27] transition-colors group mb-4">
+        <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Retour à la liste
       </NuxtLink>
-      <div>
-        <h1 class="text-2xl font-black text-gray-800">Modifier le produit</h1>
-        <p class="text-sm text-gray-500 mt-1">Modifiez les informations du produit</p>
-      </div>
+      <h1 class="text-3xl font-black text-gray-900 font-serif">Modifier le <span class="text-[#2D5A27]">Produit</span></h1>
+      <p class="text-gray-500 font-medium">Mettez à jour les informations de votre produit.</p>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex justify-center items-center h-64">
-      <div class="w-10 h-10 border-4 border-[#2D5A27] border-t-transparent rounded-full animate-spin"></div>
+    <!-- Form Card -->
+    <div class="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-8 md:p-12">
+      <form @submit.prevent="handleSubmit" class="space-y-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Nom du Produit -->
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Nom du Produit</label>
+            <input v-model="form.nom" required placeholder="Ex: Sac de Pommes de Terre" class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-medium">
+          </div>
+
+          <!-- Catégorie -->
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Catégorie</label>
+            <select v-model="selectedCategory" class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-bold text-gray-700">
+              <option value="">Sélectionner une catégorie</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.nom }}</option>
+            </select>
+          </div>
+
+          <!-- Sous-Catégorie -->
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Sous-Catégorie</label>
+            <select v-model="form.sous_categorie_id" :disabled="!selectedCategory" class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-bold text-gray-700 disabled:opacity-50">
+              <option value="">Sélectionner une sous-catégorie</option>
+              <option v-for="sc in availableSousCategories" :key="sc.id" :value="sc.id">{{ sc.nom }}</option>
+            </select>
+          </div>
+
+          <!-- Prix -->
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Prix Unitaire (FCFA)</label>
+            <div class="relative">
+              <input v-model="form.prix" type="number" required placeholder="0" class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-bold">
+              <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">FCFA</span>
+            </div>
+          </div>
+
+          <!-- Quantité -->
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Quantité en Stock</label>
+            <input v-model="form.quantite" type="number" required placeholder="0" class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-bold">
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="space-y-2 md:col-span-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Photo du Produit</label>
+            <div class="flex flex-col md:flex-row gap-6 items-start">
+              <div 
+                class="w-full md:w-48 h-48 bg-[#F5F0E8]/40 border-2 border-dashed border-gray-200 rounded-[2rem] flex items-center justify-center overflow-hidden group hover:border-[#2D5A27] transition-all cursor-pointer relative"
+                @click="$refs.fileInput.click()"
+              >
+                <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover">
+                <div v-else class="flex flex-col items-center text-gray-400 group-hover:text-[#2D5A27]">
+                  <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span class="text-[10px] font-black uppercase">Choisir une photo</span>
+                </div>
+                <input type="file" ref="fileInput" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" @change="handleFileChange">
+              </div>
+              <div class="flex-grow pt-2">
+                <p class="text-sm font-medium text-gray-500 mb-4">Formats acceptés : JPG, PNG, WEBP. Taille max : 2MB.</p>
+                <button type="button" @click="$refs.fileInput.click()" class="px-6 py-3 bg-[#F5F0E8] text-[#2D5A27] rounded-xl font-bold text-xs hover:bg-[#2D5A27] hover:text-white transition-all">
+                  {{ previewUrl ? 'Changer la photo' : 'Sélectionner un fichier' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-2">
+          <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description détaillée</label>
+          <textarea v-model="form.description" rows="4" placeholder="Décrivez les caractéristiques de votre produit..." class="w-full px-6 py-4 bg-[#F5F0E8]/40 border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all font-medium resize-none"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <div class="pt-6 border-t border-gray-50 flex items-center justify-between gap-4">
+          <p class="text-xs text-gray-400 font-medium max-w-sm">
+            Assurez-vous que les informations sont exactes avant de valider la mise en vente.
+          </p>
+          <div class="flex items-center gap-4">
+            <NuxtLink to="/producteur/produits" class="px-8 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Annuler</NuxtLink>
+            <button 
+              type="submit" 
+              :disabled="loading"
+              class="px-10 py-4 bg-[#2D5A27] text-white rounded-2xl font-black text-sm shadow-xl shadow-[#2D5A27]/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center gap-3"
+            >
+              <span>{{ loading ? 'Mise à jour...' : 'Mettre à jour' }}</span>
+              <svg v-if="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
-
-    <!-- Formulaire -->
-    <div v-else class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-
-      <!-- Message erreur -->
-      <div v-if="erreur" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold">
-        {{ erreur }}
-      </div>
-
-      <!-- Message succès -->
-      <div v-if="succes" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl text-green-600 text-sm font-bold">
-        ✅ Produit modifié avec succès !
-      </div>
-
-      <!-- Nom -->
-      <div class="mb-5">
-        <label class="block text-sm font-black text-gray-700 mb-2">Nom du produit *</label>
-        <input
-          v-model="form.nom"
-          type="text"
-          placeholder="Ex: Tomates fraîches"
-          class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium"
+    
+    <!-- Popup Modal -->
+    <div v-if="popup.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+      <div class="bg-white rounded-[2rem] shadow-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300">
+        <div 
+          class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6"
+          :class="popup.type === 'success' ? 'bg-green-100 text-[#2D5A27]' : 'bg-red-100 text-red-500'"
         >
-      </div>
-
-      <!-- Description -->
-      <div class="mb-5">
-        <label class="block text-sm font-black text-gray-700 mb-2">Description</label>
-        <textarea
-          v-model="form.description"
-          placeholder="Décrivez votre produit..."
-          rows="3"
-          class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium resize-none"
-        ></textarea>
-      </div>
-
-      <!-- Prix + Stock -->
-      <div class="grid grid-cols-2 gap-4 mb-5">
-        <div>
-          <label class="block text-sm font-black text-gray-700 mb-2">Prix (FCFA) *</label>
-          <input
-            v-model="form.prix"
-            type="number"
-            placeholder="Ex: 5000"
-            min="0"
-            class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium"
-          >
+          <svg v-if="popup.type === 'success'" class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+          <svg v-else class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
         </div>
-        <div>
-          <label class="block text-sm font-black text-gray-700 mb-2">Quantité en stock *</label>
-          <input
-            v-model="form.stock"
-            type="number"
-            placeholder="Ex: 100"
-            min="0"
-            class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium"
-          >
-        </div>
-      </div>
-
-      <!-- Catégorie -->
-      <div class="mb-5">
-        <label class="block text-sm font-black text-gray-700 mb-2">Catégorie *</label>
-        <select
-          v-model="form.categorie_id"
-          class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium"
+        <h3 class="text-2xl font-black font-serif mb-2" :class="popup.type === 'success' ? 'text-gray-900' : 'text-red-500'">
+          {{ popup.title }}
+        </h3>
+        <p class="text-gray-500 font-medium mb-8">{{ popup.message }}</p>
+        <button 
+          @click="closePopup" 
+          class="w-full py-4 text-white rounded-2xl font-black shadow-lg transition-all active:scale-95"
+          :class="popup.type === 'success' ? 'bg-[#2D5A27] hover:shadow-[#2D5A27]/20' : 'bg-red-500 hover:shadow-red-500/20'"
         >
-          <option value="" disabled>Choisir une catégorie</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.nom }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Image URL -->
-      <div class="mb-8">
-        <label class="block text-sm font-black text-gray-700 mb-2">Image (URL)</label>
-        <input
-          v-model="form.image"
-          type="text"
-          placeholder="https://exemple.com/image.jpg"
-          class="w-full px-4 py-3 bg-[#F5F0E8] border-2 border-transparent rounded-2xl focus:border-[#2D5A27] focus:bg-white outline-none transition-all text-sm font-medium"
-        >
-      </div>
-
-      <!-- Boutons -->
-      <div class="flex gap-4">
-        <NuxtLink
-          to="/producteur/produits"
-          class="flex-1 text-center py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all"
-        >
-          Annuler
-        </NuxtLink>
-        <button
-          @click="soumettreFormulaire"
-          :disabled="chargement"
-          class="flex-1 py-4 bg-[#2D5A27] text-white font-bold rounded-2xl hover:bg-[#234820] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-        >
-          <span v-if="chargement">⏳ Modification en cours...</span>
-          <span v-else>✅ Enregistrer les modifications</span>
+          {{ popup.type === 'success' ? 'Continuer' : 'Fermer' }}
         </button>
       </div>
     </div>
@@ -125,95 +132,136 @@
 </template>
 
 <script setup>
-definePageMeta({ layout: 'dashboard' })
+definePageMeta({
+  layout: 'dashboard'
+})
+
+import { ref, computed, reactive, onMounted } from 'vue'
 
 const route = useRoute()
-const config = useRuntimeConfig()
-const loading = ref(true)
-const chargement = ref(false)
-const erreur = ref('')
-const succes = ref(false)
-const categories = ref([])
+const productId = route.params.id
+const loading = ref(false)
+const selectedCategory = ref('')
+const previewUrl = ref(null)
+const selectedFile = ref(null)
+const popup = reactive({ show: false, type: 'success', title: '', message: '', redirect: null })
 
-const form = ref({
+function showPopup(type, title, message, redirect = null) {
+  popup.type = type
+  popup.title = title
+  popup.message = message
+  popup.redirect = redirect
+  popup.show = true
+}
+
+function closePopup() {
+  popup.show = false
+  if (popup.redirect) {
+    navigateTo(popup.redirect)
+  }
+}
+
+const form = reactive({
   nom: '',
   description: '',
   prix: '',
-  stock: '',
-  categorie_id: '',
-  image: ''
+  quantite: '',
+  sous_categorie_id: '',
 })
+
+const categories = ref([])
 
 onMounted(async () => {
-  await Promise.all([chargerCategories(), chargerProduit()])
-})
-
-async function chargerCategories() {
+  if (!productId) return
+  
+  // 1. Charger les catégories
   try {
     const token = localStorage.getItem('token')
-    const data = await $fetch(`${config.public.apiUrl}/categories`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    categories.value = data
-  } catch (error) {
-    console.error('Erreur chargement catégories:', error)
-  }
-}
-
-async function chargerProduit() {
-  loading.value = true
-  try {
-    const token = localStorage.getItem('token')
-    const data = await $fetch(`${config.public.apiUrl}/producteur/produits/${route.params.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    form.value = {
-      nom: data.nom,
-      description: data.description || '',
-      prix: data.prix,
-      stock: data.stock,
-      categorie_id: data.categorie_id,
-      image: data.image || ''
-    }
-  } catch (error) {
-    erreur.value = 'Produit introuvable.'
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function soumettreFormulaire() {
-  erreur.value = ''
-  succes.value = false
-
-  if (!form.value.nom || !form.value.prix || !form.value.stock || !form.value.categorie_id) {
-    erreur.value = 'Veuillez remplir tous les champs obligatoires (*)'
-    return
-  }
-
-  chargement.value = true
-  try {
-    const token = localStorage.getItem('token')
-    await $fetch(`${config.public.apiUrl}/producteur/produits/${route.params.id}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-      body: {
-        nom: form.value.nom,
-        description: form.value.description,
-        prix: Number(form.value.prix),
-        stock: Number(form.value.stock),
-        categorie_id: Number(form.value.categorie_id),
-        image: form.value.image || null
+    const response = await $fetch('http://127.0.0.1:8000/api/categories', {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : ''
       }
     })
-    succes.value = true
-    setTimeout(() => navigateTo('/producteur/produits'), 1500)
-  } catch (error) {
-    erreur.value = 'Erreur lors de la modification.'
-    console.error(error)
+    categories.value = response || []
+  } catch (err) {
+    console.error('Erreur categories:', err)
+  }
+
+  // 2. Charger le produit
+  try {
+    const token = localStorage.getItem('token')
+    const product = await $fetch(`http://127.0.0.1:8000/api/producteur/produits/${productId}`, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : ''
+      }
+    })
+    if (product) {
+      form.nom = product.nom
+      form.description = product.description || ''
+      form.prix = product.prix
+      form.quantite = product.quantite
+      selectedCategory.value = product.sous_categorie?.categorie_id || ''
+      
+      // Laisser le temps à vue de mettre à jour availableSousCategories
+      setTimeout(() => {
+        form.sous_categorie_id = product.sous_categorie_id
+      }, 50)
+
+      if (product.photo) {
+        previewUrl.value = `http://127.0.0.1:8000/storage/products/${product.photo}`
+      }
+    }
+  } catch (err) {
+    showPopup('error', 'Introuvable', 'Impossible de charger les informations du produit.')
+  }
+})
+
+const availableSousCategories = computed(() => {
+  if (!selectedCategory.value || !categories.value) return []
+  const cat = categories.value.find(c => c.id === parseInt(selectedCategory.value))
+  return cat ? cat.sous_categories : []
+})
+
+function handleFileChange(e) {
+  const file = e.target.files[0]
+  if (file) {
+    if (file.size > 2 * 1024 * 1024) {
+      showPopup('error', 'Fichier trop lourd', 'La photo ne doit pas dépasser 2MB.')
+      return
+    }
+    selectedFile.value = file
+    previewUrl.value = URL.createObjectURL(file)
+  }
+}
+
+async function handleSubmit() {
+  loading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('_method', 'PUT') // Indispensable pour Laravel avec FormData
+    formData.append('nom', form.nom)
+    formData.append('description', form.description || '')
+    formData.append('prix', form.prix)
+    formData.append('quantite', form.quantite)
+    formData.append('sous_categorie_id', form.sous_categorie_id)
+    if (selectedFile.value) {
+      formData.append('photo', selectedFile.value)
+    }
+
+    await $fetch(`http://127.0.0.1:8000/api/producteur/produits/${productId}`, {
+      method: 'POST', // On utilise POST avec _method = PUT
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    })
+    
+    showPopup('success', 'Mise à jour réussie !', 'Le produit a été modifié avec succès.', '/producteur/produits')
+  } catch (err) {
+    console.error('Erreur modification produit:', err)
+    showPopup('error', 'Erreur de modification', err.data?.message || 'Une erreur est survenue lors de la modification.')
   } finally {
-    chargement.value = false
+    loading.value = false
   }
 }
 </script>

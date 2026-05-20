@@ -154,7 +154,16 @@ async function handleLogin() {
       localStorage.setItem('role', response.user.role)
       
       // Redirection dynamique selon le rôle
-      navigateTo(`/${response.user.role}`)
+      const routes = {
+        producteur: '/producteur',
+        distributeur: '/distributeur',
+        consommateur: '/consommateur',
+        transporteur: '/transporteur',
+        super_administrateur: '/admin/super',
+        admin_sectoriel: '/admin'
+      }
+      const targetRoute = routes[response.user.role] || '/'
+      navigateTo(targetRoute)
     }
   } catch (err) {
     error.value = 'Email ou mot de passe incorrect.'

@@ -247,6 +247,14 @@ const navByRole = {
     { label: 'Livraisons', to: '/transporteur/livraisons', icon: IconOrders },
     { label: 'Rémunérations', to: '/transporteur/remunerations', icon: IconWallet },
     { label: 'Mon profil', to: '/profil', icon: IconProfile },
+  ],
+  super_administrateur: [
+    { label: 'Tableau de bord', to: '/admin/super', icon: IconDashboard },
+    { label: 'Tous les comptes', to: '/admin/super/comptes', icon: IconProfile },
+    { label: 'Catégories', to: '/admin/super/categories', icon: IconProducts },
+    { label: 'Transactions', to: '/admin/super/transactions', icon: IconWallet },
+    { label: 'Statistiques', to: '/admin/super/statistiques', icon: IconStats },
+    { label: 'Mon profil', to: '/profil', icon: IconProfile },
   ]
 }
 
